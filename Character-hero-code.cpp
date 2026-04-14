@@ -7,7 +7,6 @@ using namespace std;
 
 class Character
 {
-
 protected:
     string name;
     int hp;
@@ -70,7 +69,7 @@ class Hero : public Character
     int mana;  // ek extra power jo hero emergency me use krta hai for survival
     int level; // defines level
 public:
-    Hero(int mana, int level) : Character(name, hp, maxHp, attack, defense)
+    Hero(string n, int h, int max, int a, int de, int mana, int level) : Character(n, h, max, a, de)
     {
         this->mana = mana;
         this->level = level;
@@ -115,5 +114,31 @@ public:
     {
         if (attack > 0 && defense > 0 && isAlive() == true)
             level = level + 1;
+    }
+};
+
+class Warrior : public Hero
+{
+public:
+    Warrior(string n) : Hero(n, 150, 150, 30, 10, 20, 1)
+    {
+    }
+
+    void heavyAttack()
+    {
+        attack = attack + 20;
+    }
+};
+
+class Archer : public Hero
+{
+public:
+    Archer(string n) : Hero(n, 100, 100, 20, 8, 50, 1)
+    {
+    }
+
+    void shootarrow()
+    {
+        attack = attack + 15;
     }
 };
