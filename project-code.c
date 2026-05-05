@@ -6,8 +6,18 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <windows.h>
 
 using namespace std;
+
+void setColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+void resetColor() {
+    setColor(7);
+}
+
 //======================//
 //    Rishav ka kaam    //
 //=====================//
@@ -299,9 +309,11 @@ public:
 
 void showMainMenu()
 {
+    setColor(11);
     cout << "========================================" << endl;
     cout << "        RPG BATTLE GAME" << endl;
     cout << "========================================" << endl;
+    resetColor();
     cout << " 1. Start Game" << endl;
     cout << " 2. Exit" << endl;
     cout << "========================================" << endl;
@@ -314,9 +326,11 @@ void showMainMenu()
 
 void heroSelectionMenu()
 {
+    setColor(10);
     cout << "\n========================================" << endl;
     cout << "        HERO SELECT KARO" << endl;
     cout << "========================================" << endl;
+    resetColor();
     cout << " 1. Warrior" << endl;
     cout << "    HP: 150  |  Attack: 30  |  Potions: 3" << endl;
     cout << "    Special : Heavy Attack (+20 damage)" << endl;
@@ -334,9 +348,11 @@ void heroSelectionMenu()
 
 void enemySelectionMenu()
 {
+    setColor(12);
     cout << "\n========================================" << endl;
     cout << "        ENEMY SELECT KARO" << endl;
     cout << "========================================" << endl;
+    resetColor();
     cout << " 1. Goblin" << endl;
     cout << "    HP: 50  |  Attack: 15  |  Reward: 10 gold" << endl;
     cout << "    Special : 30% chance of Double Strike" << endl;
@@ -350,9 +366,11 @@ void enemySelectionMenu()
 
 void showBattleStatus(Hero* hero, Enemy* enemy)
 {
+    setColor(14);
     cout << "\n========================================" << endl;
     cout << "           BATTLE STATUS" << endl;
     cout << "========================================" << endl;
+    resetColor();
     hero->displayStatus();
     enemy->displayStatus();
 }
@@ -364,7 +382,9 @@ void showBattleStatus(Hero* hero, Enemy* enemy)
 void playerTurn(Hero* hero, Enemy* enemy)
 {
     int choice;
+    setColor(10);
     cout << "\n--- TERA TURN ---" << endl;
+    resetColor();
     cout << " 1. Attack" << endl;
     cout << " 2. Use Potion" << endl;
     cout << " 3. Defend" << endl;
@@ -396,7 +416,9 @@ void playerTurn(Hero* hero, Enemy* enemy)
 
 void enemyTurn(Hero* hero, Enemy* enemy, int enemyType)
 {
+    setColor(12);
     cout << "\n--- ENEMY KA TURN ---" << endl;
+    resetColor();
 
     int dmg = 0;
 
@@ -425,9 +447,11 @@ void enemyTurn(Hero* hero, Enemy* enemy, int enemyType)
 
 void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
 {
+    setColor(11);
     cout << "\n========================================" << endl;
     cout << "         BATTLE START!" << endl;
     cout << "========================================" << endl;
+    resetColor();
 
     while (hero->isAlive() && enemy->isAlive())
     {
@@ -442,19 +466,23 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
         enemyTurn(hero, enemy, enemyType);
     }
 
-    cout << "\n========================================" << endl;
-
     if (!enemy->isAlive())
     {
+        setColor(10);
+        cout << "\n========================================" << endl;
         cout << "         TU JEET GAYA!" << endl;
         cout << "========================================" << endl;
+        resetColor();
         enemy->dropLoot();
         hero->levelUp();
     }
     else
     {
+        setColor(12);
+        cout << "\n========================================" << endl;
         cout << "         GAME OVER!" << endl;
         cout << "========================================" << endl;
+        resetColor();
         cout << hero->getName() << " ki HP khatam ho gayi." << endl;
         cout << "Agli baar zyada dhyan se khelna!" << endl;
     }
@@ -467,10 +495,12 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
 // ============================================================
 
 void printTitle() {
+    setColor(14);
     cout << "  ================================================" << endl;
     cout << "  =     ***   RPG  BATTLE  GAME   ***            =" << endl;
     cout << "  =       Made by SRRH | C++ Project             =" << endl;
     cout << "  ================================================" << endl;
+    resetColor();
     cout << endl;
 }
 
