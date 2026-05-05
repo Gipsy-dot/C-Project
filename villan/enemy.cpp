@@ -57,3 +57,39 @@ public:
         return 60;
     }
 };
+
+
+
+
+////////////////////////
+
+
+
+void enemySelectionMenu()
+{
+    setColor(12);
+    cout << "\n========================================" << endl;
+    cout << "        ENEMY SELECT KARO" << endl;
+    cout << "========================================" << endl;
+    resetColor();
+    cout << " 1. Goblin" << endl;
+    cout << "    HP: 50  |  Attack: 15  |  Reward: 10 gold" << endl;
+    cout << "    Special : 30% chance of Double Strike" << endl;
+    cout << endl;
+    cout << " 2. Dragon" << endl;
+    cout << "    HP: 200  |  Attack: 40  |  Reward: 50 gold" << endl;
+    cout << "    Special : Fire Attack (60 damage)" << endl;
+    cout << "========================================" << endl;
+    cout << "1 ya 2 enter karo : ";
+}
+
+void showBattleStatus(Hero* hero, Enemy* enemy)
+{
+    setColor(14);
+    cout << "\n========================================" << endl;
+    cout << "           BATTLE STATUS" << endl;
+    cout << "========================================" << endl;
+    resetColor();
+    hero->displayStatus();
+    enemy->displayStatus();
+}
