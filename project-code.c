@@ -2,13 +2,24 @@
 //======================//
 //    Rishav ka kaam    //
 //=====================//
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#ifdef _WIN32
 #include <windows.h>
+#define SLEEP_MS(ms) Sleep(ms)
+#else
+#include <unistd.h>
+#define SLEEP_MS(ms) usleep((ms) * 1000)
+#endif
 
 using namespace std;
+
+// Global audio engine - poore program mein accessible rahega
+ma_engine engine;
 
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
@@ -17,10 +28,6 @@ void setColor(int color) {
 void resetColor() {
     setColor(7);
 }
-
-//======================//
-//    Rishav ka kaam    //
-//=====================//
 
 // ============================================================
 //  PHASE 2 - BASE CLASS + HERO CLASSES + ENEMY CLASSES
@@ -42,30 +49,23 @@ public:
         hp = h;
         maxHp = max;
         attack = a;
-        defense = de; // ye defense ka kaam karega..mtlb total damage mai se kuch kaam karke hp ko affect hoga;//
+        defense = de; // ye defense ka kaam karega..mtlb total damage mai se kuch kaam karke hp ko affect hoga
     }
 
-    void printTitle() {
-    cout << "  ================================================" << endl;
-    cout << "       ***   RPG  BATTLE  GAME   ***             " << endl;
-    cout << "          Made by Rishu | C++ Project            " << endl;
-    cout << "  ================================================" << endl;
-    cout << endl;
-}
     void takedamage(int dmg)
     {
         int finalDamage = dmg - defense;
 
         if (finalDamage < 0)
         {
-            finalDamage = 0;// ye final damage minus no. na ho iske liye;//
+            finalDamage = 0; // ye final damage minus no. na ho iske liye
         }
 
         hp = hp - finalDamage;
 
         if (hp <= 0)
         {
-            hp = 0;// ye bhi same hp minus no. mai na jye;//
+            hp = 0; // ye bhi same hp minus no. mai na jye
         }
     }
 
@@ -105,8 +105,8 @@ public:
 
 class Hero : public Character
 {
-    int mana;// ek extra power jo hero emergency me use krta hai for survival
-    int level;// defines level
+    int mana;      // ek extra power jo hero emergency me use krta hai for survival
+    int level;     // defines level
     bool isDefending;
 
 public:
@@ -229,10 +229,11 @@ public:
 
 // Radhe Radhe
 //======================//
-//    Rohit ka kaam    //
+//    Rohit ka kaam     //
 //=====================//
 
-// enemy  class me kuch specail funtion use hua hai   * isliye apko #include <cstdlib>  #include <ctime> ye dono header file use karna hoga *
+// enemy class me kuch special function use hua hai
+// isliye #include <cstdlib> aur #include <ctime> dono header file use karna hoga
 
 class Enemy : public Character
 {
@@ -279,13 +280,13 @@ public:
 
     int quickStrike()
     {
-        int chance = rand() % 100;//ye ek function jo big interger number deta hai  jisko agar 100 se division karege tb 0 se 99  ke beech aayega 
-        if (chance < 30) // agar 0 se 30 ke bich rahega tb vo double damage
+        int chance = rand() % 100; // 0 se 99 ke beech random number
+        if (chance < 30)           // 30% chance of double damage
         {
             cout << name << " ne QUICK STRIKE kiya! Double damage!" << endl;
             return attack * 2;
         }
-        return attack; // agar 30 se jada fir normal damage
+        return attack; // normal damage
     }
 };
 
@@ -299,12 +300,12 @@ public:
     int fireAttack()
     {
         cout << name << " ne FIRE ATTACK kiya! 60 damage!" << endl;
-        return 60;// strong   ye hamesa 60  ka damage deta hao 
+        return 60; // hamesha 60 damage deta hai
     }
 };
 
 // ============================================================
-//  PHASE 3 - Game logic chalo suru karte hai game
+//  PHASE 3 - Game Logic
 // ============================================================
 
 void showMainMenu()
@@ -343,7 +344,7 @@ void heroSelectionMenu()
 }
 
 //======================//
-//    Rohit ka kaam    //
+//    Rohit ka kaam     //
 //=====================//
 
 void enemySelectionMenu()
@@ -397,6 +398,8 @@ void playerTurn(Hero* hero, Enemy* enemy)
         cout << hero->getName() << " ne attack kiya!" << endl;
         enemy->takedamage(hero->getAttack());
         cout << "Enemy ko " << hero->getAttack() << " damage hua!" << endl;
+        ma_engine_play_sound(&engine, "Audio6.mp3", NULL);
+        ma_engine_play_sound(&engine, "Audio7.mp3", NULL);
         break;
 
     case 2:
@@ -475,6 +478,7 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
         resetColor();
         enemy->dropLoot();
         hero->levelUp();
+        ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
     }
     else
     {
@@ -485,6 +489,7 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
         resetColor();
         cout << hero->getName() << " ki HP khatam ho gayi." << endl;
         cout << "Agli baar zyada dhyan se khelna!" << endl;
+        ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
     }
 
     cout << "========================================" << endl;
@@ -494,7 +499,8 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
 //   Sab ka kaam - MAIN FUNCTION
 // ============================================================
 
-void printTitle() {
+void printTitle()
+{
     setColor(14);
     cout << "  ================================================" << endl;
     cout << "  =     ***   RPG  BATTLE  GAME   ***            =" << endl;
@@ -505,8 +511,15 @@ void printTitle() {
 }
 
 int main()
-
 {
+    if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
+    {
+        cout << "Failed to initialize audio engine\n";
+        return -1;
+    }
+
+    ma_engine_play_sound(&engine, "Audio1.mp3", NULL);
+
     printTitle();
     srand(time(0));
 
@@ -518,10 +531,12 @@ int main()
     if (menuChoice == 2)
     {
         cout << "Game se bahar aa gaye. Khel ne ki himat nahi!" << endl;
+        ma_engine_uninit(&engine);
         return 0;
     }
 
-    // Hero Selection
+    ma_engine_play_sound(&engine, "Audio2.wav", NULL);
+
     heroSelectionMenu();
     int heroChoice;
     cin >> heroChoice;
@@ -535,6 +550,7 @@ int main()
         cin >> hname;
         hero = new Warrior(hname);
         cout << "\nWarrior " << hname << " ready hai!" << endl;
+        ma_engine_play_sound(&engine, "Audio3.mp3", NULL);
     }
     else
     {
@@ -545,7 +561,6 @@ int main()
         cout << "\nArcher " << hname << " ready hai!" << endl;
     }
 
-    // Enemy Selection
     enemySelectionMenu();
     int enemyChoice;
     cin >> enemyChoice;
@@ -555,20 +570,24 @@ int main()
     if (enemyChoice == 1)
     {
         enemy = new Goblin("Green Goblin");
-        cout << "\nGreen Goblin  maidan mein aa gaya!" << endl;
+        cout << "\nGreen Goblin maidan mein aa gaya!" << endl;
     }
     else
     {
         enemy = new Dragon("Ballerion The Black Dread");
-        cout << "\nBallerion Opened it's eye's!" << endl;
+        cout << "\nBallerion Opened its eyes!" << endl;
+        ma_engine_play_sound(&engine, "Audio4.wav", NULL);
     }
 
-    // Game Loop
     gameLoop(hero, enemy, enemyChoice);
 
-    // Memory cleanup
     delete hero;
     delete enemy;
+
+    ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
+
+    SLEEP_MS(5000);
+    ma_engine_uninit(&engine);
 
     return 0;
 }
