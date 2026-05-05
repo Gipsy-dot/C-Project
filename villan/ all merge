@@ -2,33 +2,32 @@
 //======================//
 //    Rishav ka kaam    //
 //=====================//
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#ifdef _WIN32
 #include <windows.h>
+#define SLEEP_MS(ms) Sleep(ms)
+#else
+#include <unistd.h>
+#define SLEEP_MS(ms) usleep((ms) * 1000)
+#endif
 
 using namespace std;
 
-// Color functions
+// Global audio engine - poore program mein accessible rahega
+ma_engine engine;
+
 void setColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
 
 void resetColor() {
-    setColor(7); // normal white
+    setColor(7);
 }
-
-// Color codes:
-// 7  = White (normal)
-// 11 = Cyan  (headings)
-// 14 = Yellow
-// 10 = Green
-// 12 = Red
-
-//======================//
-//    Rishav ka kaam    //
-//=====================//
 
 // ============================================================
 //  PHASE 2 - BASE CLASS + HERO CLASSES + ENEMY CLASSES
@@ -50,24 +49,47 @@ public:
         hp = h;
         maxHp = max;
         attack = a;
-        defense = de;
+        defense = de; // ye defense ka kaam karega..mtlb total damage mai se kuch kaam karke hp ko affect hoga
     }
 
     void takedamage(int dmg)
     {
         int finalDamage = dmg - defense;
-        if (finalDamage < 0) finalDamage = 0;
+
+        if (finalDamage < 0)
+        {
+            finalDamage = 0; // ye final damage minus no. na ho iske liye
+        }
+
         hp = hp - finalDamage;
-        if (hp <= 0) hp = 0;
+
+        if (hp <= 0)
+        {
+            hp = 0; // ye bhi same hp minus no. mai na jye
+        }
     }
 
     bool isAlive()
     {
-        return hp > 0;
+        if (hp > 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
-    int getAttack() { return attack; }
-    string getName() { return name; }
+    int getAttack()
+    {
+        return attack;
+    }
+
+    string getName()
+    {
+        return name;
+    }
 
     void displayStatus()
     {
@@ -76,14 +98,15 @@ public:
     }
 };
 
+// Radhe Radhe
 //======================//
 //    Saumya ka kaam    //
 //=====================//
 
 class Hero : public Character
 {
-    int mana;
-    int level;
+    int mana;      // ek extra power jo hero emergency me use krta hai for survival
+    int level;     // defines level
     bool isDefending;
 
 public:
@@ -94,17 +117,25 @@ public:
         isDefending = false;
     }
 
-    void usePotion()
+    void usePotion() // hero ki hp agar kam ho gyi hai to uska hp recover krne ke liye
     {
         if (hp == maxHp)
+        {
             cout << name << " ki HP pehle se full hai!" << endl;
+        }
         else if (mana <= 0)
+        {
             cout << name << " ke paas potion nahi bachi!" << endl;
-        else {
+        }
+        else
+        {
             int healAmount = 30;
             mana = mana - 1;
             hp = hp + healAmount;
-            if (hp > maxHp) hp = maxHp;
+            if (hp > maxHp)
+            {
+                hp = maxHp;
+            }
             cout << name << " ne potion use ki! +" << healAmount << " HP recover hua." << endl;
             cout << "Potions baaki : " << mana << endl;
         }
@@ -118,20 +149,30 @@ public:
 
     void takedamage(int dmg)
     {
-        if (isDefending) {
+        if (isDefending)
+        {
             dmg = dmg / 2;
             cout << name << " ne defend kiya! Damage half ho gaya." << endl;
             isDefending = false;
         }
+
         int finalDamage = dmg - defense;
-        if (finalDamage < 0) finalDamage = 0;
+        if (finalDamage < 0)
+        {
+            finalDamage = 0;
+        }
+
         hp = hp - finalDamage;
-        if (hp <= 0) hp = 0;
+        if (hp <= 0)
+        {
+            hp = 0;
+        }
     }
 
     void levelUp()
     {
-        if (isAlive()) {
+        if (isAlive())
+        {
             level = level + 1;
             attack = attack + 5;
             maxHp = maxHp + 20;
@@ -152,13 +193,18 @@ public:
         cout << "---------------------------" << endl;
     }
 
-    int getAttack() { return attack; }
+    int getAttack()
+    {
+        return attack;
+    }
 };
 
 class Warrior : public Hero
 {
 public:
-    Warrior(string n) : Hero(n, 150, 150, 30, 10, 3, 1) {}
+    Warrior(string n) : Hero(n, 150, 150, 30, 10, 3, 1)
+    {
+    }
 
     int heavyAttack()
     {
@@ -170,7 +216,9 @@ public:
 class Archer : public Hero
 {
 public:
-    Archer(string n) : Hero(n, 100, 100, 20, 8, 5, 1) {}
+    Archer(string n) : Hero(n, 100, 100, 20, 8, 5, 1)
+    {
+    }
 
     int shootArrow()
     {
@@ -179,9 +227,13 @@ public:
     }
 };
 
+// Radhe Radhe
 //======================//
-//    Rohit ka kaam    //
+//    Rohit ka kaam     //
 //=====================//
+
+// enemy class me kuch special function use hua hai
+// isliye #include <cstdlib> aur #include <ctime> dono header file use karna hoga
 
 class Enemy : public Character
 {
@@ -196,7 +248,10 @@ public:
         reward = r;
     }
 
-    int aiAttack() { return attack; }
+    int aiAttack()
+    {
+        return attack;
+    }
 
     void dropLoot()
     {
@@ -219,28 +274,33 @@ public:
 class Goblin : public Enemy
 {
 public:
-    Goblin(string n) : Enemy(n, 50, 50, 15, 2, "Goblin", 10) {}
+    Goblin(string n) : Enemy(n, 50, 50, 15, 2, "Goblin", 10)
+    {
+    }
 
     int quickStrike()
     {
-        int chance = rand() % 100;
-        if (chance < 30) {
+        int chance = rand() % 100; // 0 se 99 ke beech random number
+        if (chance < 30)           // 30% chance of double damage
+        {
             cout << name << " ne QUICK STRIKE kiya! Double damage!" << endl;
             return attack * 2;
         }
-        return attack;
+        return attack; // normal damage
     }
 };
 
 class Dragon : public Enemy
 {
 public:
-    Dragon(string n) : Enemy(n, 200, 200, 40, 15, "Dragon", 50) {}
+    Dragon(string n) : Enemy(n, 200, 200, 40, 15, "Dragon", 50)
+    {
+    }
 
     int fireAttack()
     {
         cout << name << " ne FIRE ATTACK kiya! 60 damage!" << endl;
-        return 60;
+        return 60; // hamesha 60 damage deta hai
     }
 };
 
@@ -250,9 +310,9 @@ public:
 
 void showMainMenu()
 {
-    setColor(11); // Cyan heading
+    setColor(11);
     cout << "========================================" << endl;
-    cout << "          RPG BATTLE GAME               " << endl;
+    cout << "        RPG BATTLE GAME" << endl;
     cout << "========================================" << endl;
     resetColor();
     cout << " 1. Start Game" << endl;
@@ -267,9 +327,9 @@ void showMainMenu()
 
 void heroSelectionMenu()
 {
-    setColor(10); // Green heading
+    setColor(10);
     cout << "\n========================================" << endl;
-    cout << "         HERO SELECT KARO               " << endl;
+    cout << "        HERO SELECT KARO" << endl;
     cout << "========================================" << endl;
     resetColor();
     cout << " 1. Warrior" << endl;
@@ -284,14 +344,14 @@ void heroSelectionMenu()
 }
 
 //======================//
-//    Rohit ka kaam    //
+//    Rohit ka kaam     //
 //=====================//
 
 void enemySelectionMenu()
 {
-    setColor(12); // Red heading
+    setColor(12);
     cout << "\n========================================" << endl;
-    cout << "         ENEMY SELECT KARO              " << endl;
+    cout << "        ENEMY SELECT KARO" << endl;
     cout << "========================================" << endl;
     resetColor();
     cout << " 1. Goblin" << endl;
@@ -307,9 +367,9 @@ void enemySelectionMenu()
 
 void showBattleStatus(Hero* hero, Enemy* enemy)
 {
-    setColor(14); // Yellow heading
+    setColor(14);
     cout << "\n========================================" << endl;
-    cout << "           BATTLE STATUS                " << endl;
+    cout << "           BATTLE STATUS" << endl;
     cout << "========================================" << endl;
     resetColor();
     hero->displayStatus();
@@ -322,15 +382,14 @@ void showBattleStatus(Hero* hero, Enemy* enemy)
 
 void playerTurn(Hero* hero, Enemy* enemy)
 {
-    setColor(10); // Green heading
+    int choice;
+    setColor(10);
     cout << "\n--- TERA TURN ---" << endl;
     resetColor();
     cout << " 1. Attack" << endl;
     cout << " 2. Use Potion" << endl;
     cout << " 3. Defend" << endl;
     cout << "Choice enter karo : ";
-
-    int choice;
     cin >> choice;
 
     switch (choice)
@@ -339,13 +398,18 @@ void playerTurn(Hero* hero, Enemy* enemy)
         cout << hero->getName() << " ne attack kiya!" << endl;
         enemy->takedamage(hero->getAttack());
         cout << "Enemy ko " << hero->getAttack() << " damage hua!" << endl;
+        ma_engine_play_sound(&engine, "Audio6.mp3", NULL);
+        ma_engine_play_sound(&engine, "Audio7.mp3", NULL);
         break;
+
     case 2:
         hero->usePotion();
         break;
+
     case 3:
         hero->defend();
         break;
+
     default:
         cout << "Galat choice! Attack ho gaya by default." << endl;
         enemy->takedamage(hero->getAttack());
@@ -355,24 +419,27 @@ void playerTurn(Hero* hero, Enemy* enemy)
 
 void enemyTurn(Hero* hero, Enemy* enemy, int enemyType)
 {
-    setColor(12); // Red heading
+    setColor(12);
     cout << "\n--- ENEMY KA TURN ---" << endl;
     resetColor();
 
     int dmg = 0;
 
-    if (enemyType == 1)
+    if (enemyType == 1) // Goblin
     {
         Goblin* g = (Goblin*)enemy;
         dmg = g->quickStrike();
     }
-    else
+    else // Dragon
     {
         Dragon* d = (Dragon*)enemy;
         int fireChance = rand() % 100;
         if (fireChance < 40)
+        {
             dmg = d->fireAttack();
-        else {
+        }
+        else
+        {
             dmg = d->aiAttack();
             cout << enemy->getName() << " ne normal attack kiya!" << endl;
         }
@@ -383,9 +450,9 @@ void enemyTurn(Hero* hero, Enemy* enemy, int enemyType)
 
 void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
 {
-    setColor(11); // Cyan heading
+    setColor(11);
     cout << "\n========================================" << endl;
-    cout << "          BATTLE START!                 " << endl;
+    cout << "         BATTLE START!" << endl;
     cout << "========================================" << endl;
     resetColor();
 
@@ -393,29 +460,36 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
     {
         showBattleStatus(hero, enemy);
         playerTurn(hero, enemy);
-        if (!enemy->isAlive()) break;
+
+        if (!enemy->isAlive())
+        {
+            break;
+        }
+
         enemyTurn(hero, enemy, enemyType);
     }
 
     if (!enemy->isAlive())
     {
-        setColor(10); // Green — jeet
+        setColor(10);
         cout << "\n========================================" << endl;
-        cout << "          TU JEET GAYA!                 " << endl;
+        cout << "         TU JEET GAYA!" << endl;
         cout << "========================================" << endl;
         resetColor();
         enemy->dropLoot();
         hero->levelUp();
+        ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
     }
     else
     {
-        setColor(12); // Red — haar
+        setColor(12);
         cout << "\n========================================" << endl;
-        cout << "           GAME OVER!                   " << endl;
+        cout << "         GAME OVER!" << endl;
         cout << "========================================" << endl;
         resetColor();
         cout << hero->getName() << " ki HP khatam ho gayi." << endl;
-        cout << "Agli baar zyada dhyan se khelna   Good luck !" << endl;
+        cout << "Agli baar zyada dhyan se khelna!" << endl;
+        ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
     }
 
     cout << "========================================" << endl;
@@ -427,7 +501,7 @@ void gameLoop(Hero* hero, Enemy* enemy, int enemyType)
 
 void printTitle()
 {
-    setColor(14); // Yellow title
+    setColor(14);
     cout << "  ================================================" << endl;
     cout << "  =     ***   RPG  BATTLE  GAME   ***            =" << endl;
     cout << "  =       Made by SRRH | C++ Project             =" << endl;
@@ -438,6 +512,14 @@ void printTitle()
 
 int main()
 {
+    if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
+    {
+        cout << "Failed to initialize audio engine\n";
+        return -1;
+    }
+
+    ma_engine_play_sound(&engine, "Audio1.mp3", NULL);
+
     printTitle();
     srand(time(0));
 
@@ -449,8 +531,11 @@ int main()
     if (menuChoice == 2)
     {
         cout << "Game se bahar aa gaye. Khel ne ki himat nahi!" << endl;
+        ma_engine_uninit(&engine);
         return 0;
     }
+
+    ma_engine_play_sound(&engine, "Audio2.wav", NULL);
 
     heroSelectionMenu();
     int heroChoice;
@@ -465,6 +550,7 @@ int main()
         cin >> hname;
         hero = new Warrior(hname);
         cout << "\nWarrior " << hname << " ready hai!" << endl;
+        ma_engine_play_sound(&engine, "Audio3.mp3", NULL);
     }
     else
     {
@@ -490,12 +576,18 @@ int main()
     {
         enemy = new Dragon("Ballerion The Black Dread");
         cout << "\nBallerion Opened its eyes!" << endl;
+        ma_engine_play_sound(&engine, "Audio4.wav", NULL);
     }
 
     gameLoop(hero, enemy, enemyChoice);
 
     delete hero;
     delete enemy;
+
+    ma_engine_play_sound(&engine, "AudioL.mp3", NULL);
+
+    SLEEP_MS(1500);
+    ma_engine_uninit(&engine);
 
     return 0;
 }
